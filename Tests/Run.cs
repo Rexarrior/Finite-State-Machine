@@ -13,7 +13,7 @@ namespace Tests
 
         public static void Main(string[] args)
         {
-            MyTaskTest test = new MyTaskTest("logs.txt");
+            MyTaskTest test = new MyTaskTest("test_logs.txt");
             test.Test();
 
         }

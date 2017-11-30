@@ -64,7 +64,7 @@ namespace Tests
         {
 
             string str = ""; 
-            bool answ = false; 
+           
             
 
             Regex verifer = new Regex("%(\\*a\\*\\*(\\*\\*)*)+%");
@@ -113,13 +113,13 @@ namespace Tests
                         bool answVer = verifer.IsMatch(str) ;
                         bool answMach =  machine.IsFinal; 
                         string answStr = ""; 
-
                         if (answVer == answMach)
                             answStr = "PASS"; 
                         else
                             answStr = "FAILED"; 
 
 
+                        machine.ReInitialize();
                         output.WriteLine(" test {0} ; sequence = {1} ; Verifer answer = {2} ; Machine answer = {3}",
                         answStr, str, answVer, answMach);
                     }
