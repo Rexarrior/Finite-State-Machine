@@ -12,22 +12,29 @@ namespace FiniteStateMachine
     class Program
     {
         #region Save\load Machine functions
+        /// <summary>
+        /// save the NFM to file
+        /// </summary>
+        /// <param name="machine">NFM to be saved</param>
+        /// <param name="filename">Output file </param>
         static void SaveNFMMachine(NFM<string> machine, string filename)
         {
 
         try
         {
             using (StreamWriter outputFile =new StreamWriter( new FileStream(filename, FileMode.OpenOrCreate)))
-            {
+            {   
                 outputFile.WriteLine("# Alphabet");
                 outputFile.WriteLine(machine.Alphabet.Literals.Aggregate("", (acum, x)=> acum + x.ToString() + ' '));
                 outputFile.WriteLine("# Count of states");
                 outputFile.WriteLine(machine.StateTable.Count);
+                #region save states
                 outputFile.WriteLine("# States");
                 var states = machine.StateTable.States;
-                states.Reverse() ;
+                states.Reverse() ;  // Need for conservation input order
                 foreach (State<string>  state in  states )
-                {
+                {//saving states
+
                     string str = state.Caption;
                     if (state.IsStartingState)
                         str += " 1";
@@ -47,22 +54,27 @@ namespace FiniteStateMachine
                     outputFile.WriteLine(str);
                     
                 }
-                
+                #endregion
                 outputFile.WriteLine("# Name");
                 outputFile.WriteLine(machine.Name);
 
             }
-            Console.WriteLine("Machine {0} succesfull have saved", machine.Name);  
+            Console.WriteLine("Machine {0} succesfull saved", machine.Name);  
         }
         catch (System.Exception e)
         {
-            
+            //something was wrong :(
             Console.WriteLine("Error! Machine haven't saved. Error message is {0} ",e.Message);
         }
 
               
         }
 
+        /// <summary>
+        /// Load NFM from the input file
+        /// </summary>
+        /// <param name="filename">Name of file contains the NFM</param>
+        /// <returns>Loaded NFM</returns>
         static NFM<string> loadNFM(string filename)
         {
             
@@ -70,21 +82,32 @@ namespace FiniteStateMachine
             {
                 using (StreamReader inputFile = new StreamReader(new FileStream(filename, FileMode.Open))) 
                 {
-                    
-                    string inputStr = inputFile.ReadLine();
-                    while (inputStr[0] == '#')
+                    string inputStr;                    
+                    // This block need to skip the comments                   
+                    #region skip comment
+                    inputStr = inputFile.ReadLine();
+                    while (inputStr[0] == '#')                        
                         inputStr = inputFile.ReadLine();
+                    #endregion                    
                     Alphabet<string> alphabet = new Alphabet<string>(inputStr.Split(' '));
+                    
+                    #region skip comment
                     inputStr = inputFile.ReadLine();
-                    while (inputStr[0] == '#')
+                    while (inputStr[0] == '#')                        
                         inputStr = inputFile.ReadLine();
+                    #endregion                     
                     int countOfStates = int.Parse(inputStr);
+
+                    #region skip comment
                     inputStr = inputFile.ReadLine();
-                    while (inputStr[0] == '#')
+                    while (inputStr[0] == '#')                        
                         inputStr = inputFile.ReadLine();
+                    #endregion                    
                     List<List<Pair<string, int>>> nextStatesForAll = new List<List<Pair<string, int>>>(countOfStates);
                     List<State<string>> states = new List<State<string>>(countOfStates);
                     
+                    //collecting state-input strings and make state without next states
+                    #region input states
                     for (int i = 1; i <= countOfStates; i++ )
                     {
                         
@@ -116,19 +139,24 @@ namespace FiniteStateMachine
                     
                     }
                     
-
+                    // adding the next states to states
                     for (int i = 0; i < countOfStates; i++)
                     {
                         states[i].NextStates = nextStatesForAll[i ].
                             Select(x => new Pair<string,
                             State<string>>(x.first, states[x.second-1])).ToList();
                     }
-
+                    #endregion
+                    
+                    #region skip comment
                     inputStr = inputFile.ReadLine();
                     while (inputStr[0] == '#')
                         inputStr = inputFile.ReadLine();
+                    #endregion                    
                     string name = inputStr;
                     
+
+                    // make the machine
                     StateTable<string> stateTable = new StateTable<string>( states);
                     NFM<string> nfm = new NFM<string>(alphabet, stateTable);
                     nfm.Name = name;
@@ -141,7 +169,7 @@ namespace FiniteStateMachine
             }
             catch (System.Exception e)
             {
-                
+                //something was wronk :(
                 Console.WriteLine("Error. Machine haven't loaded. Exception message:{0} ",e.Message);
                 return null;
             }
@@ -151,17 +179,22 @@ namespace FiniteStateMachine
         #endregion
         
         
-        
+        /// <summary>
+        /// Construct new NFM by parameters, that will be read from Console input
+        /// </summary>
+        /// <returns>NFM</returns>
         static NFM<string> ConstrucktNFM()
         {
             Console.Write(Notes.contructingAlphabetStartNote);
            
-
+            #region  collecting Alphabet
             Console.Write(Notes.constructingAlphabetEnteringNote);
             string literals = Console.ReadLine();
             Alphabet<string> alphabet = new Alphabet<string>(literals.Split(' '));
             Console.Write(Notes.constructingAlphabetEndNote);
-
+            #endregion
+           
+            #region collecting states
             Console.Write(Notes.constructingTableStateBeginNote);
             int countOfStates = int.Parse(Console.ReadLine());
 
@@ -207,33 +240,40 @@ namespace FiniteStateMachine
                     Select(x => new Pair<string,
                     State<string>>(x.first, states[x.second-1])).ToList();
             }
+            #endregion
 
 
+            //make machine
             StateTable<string> stateTable = new StateTable<string>( states);
             NFM<string> nfm = new NFM<string>(alphabet, stateTable);
 
             Console.Write(Notes.machineIsReadyNote);
             nfm.Name = Console.ReadLine();
-            
-
                 
             Console.Write(Notes.constructingTableStateEndNote);
 
             return nfm; 
         }
 
-
+        /// <summary>
+        /// Read and analize an input strings by NFM
+        /// </summary>
+        /// <param name="nfm">Used NFM</param>
         static void useNFM(NFM<string> nfm)
         {
             Console.Write(Notes.useMachineUseNote);
 
             nfm.InputString = Console.ReadLine().Select(x=>"" + x).ToList();
-            nfm.processString();
-
+            nfm.processString(); // Compute allowing of input string 
             Console.WriteLine("Input string is{0} alllowed. \n", nfm.IsFinal?"":" not");
-            nfm.ReInitialize();
+             
+            // Back all parameters of the machine to default to future use
+            nfm.ReInitialize(); 
              
         } 
+
+
+
 
         static void Main(string[] args)
         {
@@ -255,22 +295,21 @@ namespace FiniteStateMachine
                             switch (Console.ReadLine())
                             {
                                case "1":
-                                    {// load from file mode
-
+                                    {
+                                        #region load from file 
                                         Console.Write("Please, enter  file name: ");
                                         string name = Console.ReadLine();
 
                                         NFM<string> machine = loadNFM(name);
                                         if (machine != null)
                                             machines.Add(machine);
-
-
+                                        #endregion
                                     }
                                     break;
 
                                 case "2":
-                                    {// use already exists machine mode
-
+                                    {
+                                        #region use already exists machine
                                         while (true)
                                         {
                                             Console.Write(Notes.useInSessionMachineSelect);
@@ -294,6 +333,7 @@ namespace FiniteStateMachine
                                             
                                             
                                         }
+                                        #endregion
                                     }break;
 
                                 default: continue;
