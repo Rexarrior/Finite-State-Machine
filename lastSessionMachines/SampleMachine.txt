@@ -1,0 +1,9 @@
+# Alphabet
+1 0 
+# Count of states
+2
+# States
+A 1 0 1 2 0 1
+B 0 1 1 1 0 1
+# Name
+SampleMachine

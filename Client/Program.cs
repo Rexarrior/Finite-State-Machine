@@ -265,16 +265,27 @@ namespace FiniteStateMachine
 
             nfm.InputString = Console.ReadLine().Select(x=>"" + x).ToList();
             nfm.processString(); // Compute allowing of input string 
-            Console.WriteLine("Input string is{0} alllowed. \n", nfm.IsFinal?"":" not");
-             
+            Console.WriteLine("Input string is{0} acceping. \n", nfm.IsFinal?"":" not");
+            nfm.ReInitialize();
+            List<List<string>> substrs = nfm.GetAcceptingSubstrFromInput().ToList(); 
+            if(substrs.Count == 0 )
+                Console.WriteLine("Input string isn't contain any accepting substring.");
+            else
+            {
+                foreach (var item in substrs)
+                {
+                    Console.Write("The follow substring was accepting: "); 
+                    Console.WriteLine(item.Aggregate(" ", (acum, x)=>acum + x));
+                }
+            }
+
             // Back all parameters of the machine to default to future use
             nfm.ReInitialize(); 
              
         } 
 
 
-
-
+        
         static void Main(string[] args)
         {
             List<NFM<string>> machines = new List<NFM<string>>();
