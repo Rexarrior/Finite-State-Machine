@@ -1,3 +1,7 @@
+# The FSM for accepting a string like "%*a***a****a**%".
+# Strings must consist of sequences "*a*" with odd numbers of '*' after each of them.
+# All of this between two '%'. 
+
 # Alphabet
 % * a  
 # Count of states
